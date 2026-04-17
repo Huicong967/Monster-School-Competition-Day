@@ -13,17 +13,26 @@ Follow three students — Flying Tiger, Max, and Sir Doggegg—as they head into
 
 ## Max Mini Game (Pygame)
 
-A fullscreen, side-scrolling shooter mini game.
+A fullscreen, side-scrolling shooter mini game with a simple menu screen.
 
 ### What you need in the folder
 
 - Game script: `Max_mini_game/Max Mini Game.py`
 - Assets folder: `Max_mini_game/Max_assets/` with these PNGs:
-  - `Max_minigame_bg.png`
-  - `Max_game_ready_pose.png`
-  - `Max_game_ready_shotpose.png`
-  - `Laser_shot.png`
-  - `wood.png`, `star_wood.png`, `moon_wood.png`, `around_wood.png`
+  - Background / menu:
+    - `Max_minigame_bg.png`
+    - `Whiteboard.png`
+    - `Max_full.png`
+    - `start_button.png`
+  - Player / shooting:
+    - `Max_game_ready_pose.png`
+    - `Max_game_ready_shotpose.png`
+    - `Laser_shot.png`
+  - Woods:
+    - `wood.png`, `star_wood.png`, `moon_wood.png`, `around_wood.png`
+  - End screen buttons:
+    - `replay_button.png`
+    - `home_button.png`
 
 If any file is missing, the game will stop and tell you which image is missing.
 
@@ -55,10 +64,18 @@ python "Max_mini_game/Max Mini Game.py"
 
 ### Controls
 
-- `W` / `S`: move up / down
-- `A` / `D`: move left / right
-- `Space`: shoot
-- `Esc`: quit
+- Menu:
+  - Click `start_button.png` (or click the whiteboard) to start
+  - `Enter`: start
+  - `Esc`: quit
+- In-game:
+  - `W` / `S` or `↑` / `↓`: move up / down
+  - `A` / `D` or `←` / `→`: move left / right
+  - `Space`: shoot
+  - `Esc`: quit
+- End screen:
+  - Click Replay to play again
+  - Click Home to exit to desktop
 
 ### Scoring (easy rules)
 
