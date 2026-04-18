@@ -17,11 +17,11 @@ pygame.display.set_caption("Main Menu")
 
 SCREEN_WIDTH, SCREEN_HEIGHT = screen.get_size()
 
-ASSET_DIR = os.path.join(os.path.dirname(__file__), "meun&map")
+ASSET_DIR = os.path.join(os.path.dirname(__file__), "menu&map")
 BG_PATH = os.path.join(ASSET_DIR, "cloud.png")
 
 if not os.path.exists(BG_PATH):
-    raise FileNotFoundError(f"Missing background image: {BG_PATH}. Put cloud.png in the meun&map folder.")
+    raise FileNotFoundError(f"Missing background image: {BG_PATH}. Put cloud.png in the menu&map folder.")
 
 _bg_raw = pygame.image.load(BG_PATH).convert()
 _bg_w, _bg_h = _bg_raw.get_size()
@@ -37,7 +37,7 @@ START_BTN_PATH = os.path.join(ASSET_DIR, "start_button.png")
 VIDEO_PATH = os.path.join(ASSET_DIR, "skytoschool.mp4")
 
 if not os.path.exists(VIDEO_PATH):
-    raise FileNotFoundError(f"Missing video file: {VIDEO_PATH}. Put skytoschool.mp4 in the meun&map folder.")
+    raise FileNotFoundError(f"Missing video file: {VIDEO_PATH}. Put skytoschool.mp4 in the menu&map folder.")
 
 for _p in (LOGO_PATH, START_BTN_PATH):
     if not os.path.exists(_p):
@@ -307,7 +307,7 @@ def show_map() -> None:
     global screen, SCREEN_WIDTH, SCREEN_HEIGHT
     MAP_PATH = os.path.join(ASSET_DIR, "map.png")
     if not os.path.exists(MAP_PATH):
-        print(f"Missing map image: {MAP_PATH}. Put map.png in the meun&map folder.")
+        print(f"Missing map image: {MAP_PATH}. Put map.png in the menu&map folder.")
         return
 
     try:
