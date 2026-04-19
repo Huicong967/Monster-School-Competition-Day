@@ -12,6 +12,8 @@ from __future__ import annotations
 
 import os
 import random
+import sys
+import traceback
 
 import pygame
 
@@ -32,6 +34,68 @@ def run(screen: pygame.Surface | None = None) -> None:
         created_display = True
 
     screen_width, screen_height = screen.get_size()
+
+    def _launch_interactive_system(current_screen: pygame.Surface) -> bool:
+        """Launch the interactive video system on the existing screen."""
+        try:
+            # Give immediate visual feedback so it doesn't feel like "nothing happened".
+            try:
+                loading_font = pygame.font.SysFont(None, 64)
+                loading_surf = loading_font.render("Loading...", True, (255, 255, 255))
+                current_screen.blit(
+                    loading_surf,
+                    loading_surf.get_rect(center=(screen_width // 2, int(screen_height * 0.82))),
+                )
+                pygame.display.flip()
+            except Exception:
+                pass
+
+            # Prefer regular package import (more reliable than dynamic import)
+            try:
+                import importlib
+
+                root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+                if root_dir not in sys.path:
+                    sys.path.insert(0, root_dir)
+
+                from Max_interactive_video_system import Interactive_System as interactive  # type: ignore
+
+                interactive = importlib.reload(interactive)
+                pygame.event.clear()
+                _ = interactive.run(screen=current_screen, config=None)
+                return True
+            except Exception:
+                # Fall back to dynamic import below.
+                pass
+
+            import importlib.util
+
+            mod_path = os.path.abspath(
+                os.path.join(
+                    os.path.dirname(__file__),
+                    "..",
+                    "Max_interactive_video_system",
+                    "Interactive_System.py",
+                )
+            )
+
+            spec = importlib.util.spec_from_file_location("interactive_system", mod_path)
+            if spec is None or spec.loader is None:
+                raise RuntimeError("Failed to load Interactive_System.py")
+
+            interactive = importlib.util.module_from_spec(spec)
+            sys.modules[spec.name] = interactive
+            spec.loader.exec_module(interactive)  # type: ignore
+
+            # Clear pending input so the interactive system doesn't instantly exit.
+            pygame.event.clear()
+
+            _ = interactive.run(screen=current_screen, config=None)
+            return True
+        except Exception as e:
+            print("[mini-game] Failed to launch interactive system:", type(e).__name__, e)
+            traceback.print_exc()
+            return False
 
     def exit_whole_program() -> None:
         # ESC should exit the whole program (both main and mini game).
@@ -683,9 +747,13 @@ def run(screen: pygame.Surface | None = None) -> None:
                     # If invitation is shown, only Enter or mouse click returns to caller
                     if invitation_rect is not None:
                         if event.type == pygame.KEYDOWN and event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
-                            return
+                            # Launch interactive system using current display (no black screen)
+                            if _launch_interactive_system(screen):
+                                return
                         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                            return
+                            # Launch on click while invitation is shown
+                            if _launch_interactive_system(screen):
+                                return
                     if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                         # Only check the replay/home buttons when invitation isn't shown
                         if invitation_rect is None:

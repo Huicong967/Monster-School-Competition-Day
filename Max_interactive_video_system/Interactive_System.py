@@ -1,10 +1,10 @@
 """Interactive video system (simple branching A/B).
 
 Behavior:
-- Plays `Test_video_01.mp4`.
+- Plays `Max_scenes001.mp4`.
 - When it ends, shows two buttons: A (left) and B (right).
-- Clicking A plays `Test_video_A.mp4`.
-- Clicking B plays `Test_video_B.mp4`.
+- Clicking A plays `Round1_A.mp4`.
+- Clicking B plays `Round1_B.mp4`.
 
 Notes:
 - Video is decoded with MoviePy and displayed with Pygame.
@@ -26,9 +26,9 @@ class InteractiveConfig:
 
     base_dir: Path
 
-    start_video: str = "Test_video_01.mp4"
-    option_a_video: str = "Test_video_A.mp4"
-    option_b_video: str = "Test_video_B.mp4"
+    start_video: str = "Max_scenes001.mp4"
+    option_a_video: str = "Round1_A.mp4"
+    option_b_video: str = "Round1_B.mp4"
 
     fps_fallback: int = 30
 
@@ -275,8 +275,16 @@ def _choose_option(
         clock.tick(60)
 
 
-def main() -> int:
-    config = InteractiveConfig(base_dir=Path(__file__).resolve().parent)
+def run(screen: pygame.Surface | None = None, config: InteractiveConfig | None = None) -> int:
+    """Run the interactive video system.
+
+    If `screen` is provided, videos will be rendered into that surface and this
+    function will return to the caller without calling `pygame.quit()`.
+    """
+    created_display = False
+
+    if config is None:
+        config = InteractiveConfig(base_dir=Path(__file__).resolve().parent)
 
     start_path = config.base_dir / config.start_video
     a_path = config.base_dir / config.option_a_video
@@ -285,11 +293,13 @@ def main() -> int:
     button_a_img = config.base_dir / "Button_A.png"
     button_b_img = config.base_dir / "Button_B.png"
 
-    pygame.init()
-    try:
+    if screen is None:
+        pygame.init()
         screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
         pygame.display.set_caption("Interactive Video System")
+        created_display = True
 
+    try:
         start_result = _play_video(screen, start_path, fps_fallback=config.fps_fallback)
         if not start_result.ended:
             return 0
@@ -308,7 +318,13 @@ def main() -> int:
         _play_video(screen, next_path, fps_fallback=config.fps_fallback)
         return 0
     finally:
-        pygame.quit()
+        # Only quit pygame if we created the display here.
+        if created_display:
+            pygame.quit()
+
+
+def main() -> int:
+    return run(screen=None, config=None)
 
 
 if __name__ == "__main__":
