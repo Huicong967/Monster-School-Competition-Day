@@ -27,3 +27,9 @@ venv/
 dist/
 build/
 project_management_excel.txt
+
+# Ignore large media files (intro videos, game audio)
+*.mp4
+*.mp3
+menu&map/intro_video/
+tetris_game/*.mp3
