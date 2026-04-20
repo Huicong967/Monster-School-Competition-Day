@@ -120,8 +120,11 @@ class Tetris:
         globals()["BOARD_X"] = new_board_x
         globals()["BOARD_Y"] = new_board_y
         self.clock = pygame.time.Clock()
-        self.font = pygame.font.SysFont("arial", 24, bold=True)
-        self.big_font = pygame.font.SysFont("arial", 48, bold=True)
+        # scale fonts relative to window height so sidebar text stays readable on large screens
+        small_fs = max(14, int(h * 0.04))
+        big_fs = max(24, int(h * 0.08))
+        self.font = pygame.font.SysFont("arial", small_fs, bold=True)
+        self.big_font = pygame.font.SysFont("arial", big_fs, bold=True)
         self.board = new_board()
         self.current = None
         self.next_piece = self.random_piece()
@@ -200,8 +203,9 @@ class Tetris:
         if self.hold_piece is None:
             # store the current piece and spawn the next one
             self.hold_piece = Piece(self.current.kind)
-            self.can_hold = False
             self.spawn_piece()
+            # disallow holding again until next lock
+            self.can_hold = False
         else:
             # swap current and held pieces
             held_kind = self.hold_piece.kind
@@ -300,67 +304,80 @@ class Tetris:
     def draw_sidebar(self):
         sx = BOARD_X + WIDTH * CELL + 30
         pygame.draw.rect(self.screen, PANEL, (BOARD_X + WIDTH * CELL + 20, BOARD_Y - 10, SIDEBAR - 10, HEIGHT * CELL + 20), border_radius=18)
+
+        # place the sidebar contents relative to BOARD_Y so the whole group stays centered
+        sidebar_top = BOARD_Y + 12
         title = self.big_font.render("TETRIS", True, TEXT)
-        self.screen.blit(title, (sx, 52))
+        self.screen.blit(title, (sx, sidebar_top))
 
-        # Hold preview
-        hld = self.font.render("Hold", True, MUTED)
-        self.screen.blit(hld, (sx, 100))
-        hold_preview_x = sx + 15
-        hold_preview_y = 125
-        if self.hold_piece is not None:
-            for cx, cy in self.hold_piece.cells:
-                rect = pygame.Rect(hold_preview_x + cx * 22, hold_preview_y + cy * 22, 22, 22)
-                pygame.draw.rect(self.screen, self.hold_piece.color, rect.inflate(-3, -3), border_radius=6)
-                pygame.draw.rect(self.screen, (255, 255, 255), rect.inflate(-3, -3), 1, border_radius=6)
-        else:
-            # draw an empty preview box
-            pygame.draw.rect(self.screen, GRID, (hold_preview_x, hold_preview_y, 88, 66), 1)
+        # Stats list (scaled and spaced based on font height)
+        line_h = self.font.get_height() + 12
+        stats_start = sidebar_top + title.get_height() + 18
 
-        def label(text, value, y):
+        def label(text, value, offset_index):
+            y = stats_start + offset_index * line_h
             t = self.font.render(text, True, MUTED)
             v = self.font.render(str(value), True, TEXT)
             self.screen.blit(t, (sx, y))
-            self.screen.blit(v, (sx, y + 28))
+            self.screen.blit(v, (sx, y + self.font.get_height()))
 
-        label("Score", self.score, 130)
-        label("Lines", self.lines, 220)
-        label("Level", self.level, 310)
+        label("Score", self.score, 0)
+        label("Lines", self.lines, 1)
+        label("Level", self.level, 2)
 
         # Debug / Drop rate display
-        dbg_y = 340
         dbg_text = "DEBUG: ON" if self.debug_mode else "DEBUG: OFF"
         dbg_col = ACCENT if self.debug_mode else MUTED
         dbg_render = self.font.render(dbg_text, True, dbg_col)
-        self.screen.blit(dbg_render, (sx, dbg_y))
+        self.screen.blit(dbg_render, (sx, stats_start + 3 * line_h))
 
-        drop_y = 370
         drop_val = int(self.drop_ms)
         d = self.font.render(f"Drop(ms): {drop_val}", True, TEXT)
-        self.screen.blit(d, (sx, drop_y))
+        self.screen.blit(d, (sx, stats_start + 4 * line_h))
 
+        # Hold preview (above other sidebar content)
+        hld = self.font.render("Hold", True, MUTED)
+        hold_preview_x = sx + 15
+        hold_preview_y = sidebar_top + title.get_height() + 6
+        self.screen.blit(hld, (sx, hold_preview_y))
+        hold_box_y = hold_preview_y + hld.get_height() + 6
+        preview_cell = max(12, int(self.font.get_height() * 0.9))
+        if self.hold_piece is not None:
+            for cx, cy in self.hold_piece.cells:
+                rect = pygame.Rect(hold_preview_x + cx * preview_cell, hold_box_y + cy * preview_cell, preview_cell, preview_cell)
+                pygame.draw.rect(self.screen, self.hold_piece.color, rect.inflate(-3, -3), border_radius=6)
+                pygame.draw.rect(self.screen, (255, 255, 255), rect.inflate(-3, -3), 1, border_radius=6)
+        else:
+            pygame.draw.rect(self.screen, GRID, (hold_preview_x, hold_box_y, preview_cell * 4, preview_cell * 3), 1)
+
+        # Next preview (placed under stats)
+        nxt_y = stats_start + 5 * line_h + 8
         nxt = self.font.render("Next", True, MUTED)
-        self.screen.blit(nxt, (sx, 400))
+        self.screen.blit(nxt, (sx, nxt_y))
         preview_x = sx + 15
-        preview_y = 445
+        preview_y = nxt_y + nxt.get_height() + 8
         for cx, cy in self.next_piece.cells:
-            rect = pygame.Rect(preview_x + cx * 22, preview_y + cy * 22, 22, 22)
+            rect = pygame.Rect(preview_x + cx * preview_cell, preview_y + cy * preview_cell, preview_cell, preview_cell)
             pygame.draw.rect(self.screen, self.next_piece.color, rect.inflate(-3, -3), border_radius=6)
             pygame.draw.rect(self.screen, (255, 255, 255), rect.inflate(-3, -3), 1, border_radius=6)
 
+        # Controls at bottom of sidebar (anchor near board bottom)
         controls = [
             "Left/Right: move",
             "Up / X: rotate",
             "Down: soft drop",
             "Space: hard drop",
+            "C / LShift: hold",
             "R: restart",
             "Esc: quit",
         ]
-        yy = 560
+        bottom_margin = 20
+        controls_start = BOARD_Y + HEIGHT * CELL - bottom_margin - len(controls) * (self.font.get_height() + 6)
+        yy = controls_start
         for line in controls:
             txt = self.font.render(line, True, MUTED)
             self.screen.blit(txt, (sx, yy))
-            yy += 28
+            yy += self.font.get_height() + 6
 
     def draw_game_over(self):
         overlay = pygame.Surface((WINDOW_W, WINDOW_H), pygame.SRCALPHA)
