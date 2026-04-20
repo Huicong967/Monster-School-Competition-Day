@@ -6,6 +6,31 @@ Interactive branching video where the audience chooses the story.
 
 Follow three students — Flying Tiger, Max, and Sir Doggegg—as they head into Competition Day. Viewers vote at key moments; each choice branches the video and changes relationships, challenges, and endings.
 
+Assets note
+-----------
+This project does not include large media files (videos and audio) in the Git repository.
+
+To get the media files required to run the game after cloning:
+
+1. Upload the media files (intro videos and SFX) to a public location you control (GitHub Release, Google Drive, or other CDN) and copy the direct download URLs.
+2. Edit `scripts/fetch_assets.sh` and replace the `<INTRO01_URL>` etc. placeholders with the real URLs.
+3. Run:
+
+```bash
+bash scripts/fetch_assets.sh
+```
+
+4. Then create and activate a Python virtualenv and install requirements:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python Monster_College.py
+```
+
+If you prefer not to maintain external downloads, consider using Git LFS to track large files.
+
 ## How It Works (short)
 
 - Scenes play as short clips with decision prompts.
