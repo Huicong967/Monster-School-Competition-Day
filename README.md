@@ -46,81 +46,62 @@ If you prefer not to maintain external downloads, consider using Git LFS to trac
 
 ## Max Mini Game (Pygame)
 
-A fullscreen, side-scrolling shooter mini game with a simple menu screen.
+A fullscreen, side-scrolling shooter mini game. You move Max, shoot flying wood, and try to reach a target score before time runs out.
 
-### What you need in the folder
+### Quick start (Windows)
 
-- Game script: `Max_mini_game/Max Mini Game.py`
-- Assets folder: `Max_mini_game/Max_assets/` with these PNGs:
-  - Background / menu:
-    - `Max_minigame_bg.png`
-    - `Whiteboard.png`
-    - `Max_full.png`
-    - `start_button.png`
-  - Player / shooting:
-    - `Max_game_ready_pose.png`
-    - `Max_game_ready_shotpose.png`
-    - `Laser_shot.png`
-  - Woods:
-    - `wood.png`, `star_wood.png`, `moon_wood.png`, `around_wood.png`
-  - End screen buttons:
-    - `replay_button.png`
-    - `home_button.png`
-
-If any file is missing, the game will stop and tell you which image is missing.
-
-### Install (one time)
+1. Install the only dependency:
 
 ```powershell
 python -m pip install pygame
 ```
 
-If you use this repo’s venv, you can also do:
-
-```powershell
-& .venv/Scripts/python.exe -m pip install pygame
-```
-
-### Run
-
-From the repository root (Windows PowerShell):
-
-```powershell
-& .venv/Scripts/python.exe "Max_mini_game/Max Mini Game.py"
-```
-
-Or with your system Python:
+2. Run the game (from the repo root):
 
 ```powershell
 python "Max_mini_game/Max Mini Game.py"
 ```
 
+If you’re using this repo’s venv:
+
+```powershell
+& .venv/Scripts/python.exe "Max_mini_game/Max Mini Game.py"
+```
+
+### Required files (assets)
+
+The game loads images from `Max_mini_game/Max_assets/`. If a required PNG is missing, it will stop and print the missing filename.
+
+Required PNGs:
+- Background / menu: `Max_minigame_bg.png`, `Whiteboard.png`, `Max_full.png`, `start_button.png`
+- Player / shooting: `Max_game_ready_pose.png`, `Max_game_ready_shotpose.png`, `Laser_shot.png`
+- Woods: `wood.png`, `star_wood.png`, `moon_wood.png`, `around_wood.png`
+- End screen: `replay_button.png`, `home_button.png`
+
+Optional files:
+- SFX (used if present): `laser_gun.wav`, `Collect_wood.wav`, `Got_hit.wav`
+- `invitation.png` (if present and you win, it’s shown on the end screen)
+
 ### Controls
 
-- Menu:
-  - Click `start_button.png` (or click the whiteboard) to start
-  - `Enter`: start
-  - `Esc`: quit
-- In-game:
-  - `W` / `S` or `↑` / `↓`: move up / down
-  - `A` / `D` or `←` / `→`: move left / right
-  - `Space`: shoot
-  - `Esc`: quit
-- End screen:
-  - Click Replay to play again
-  - Click Home to exit to desktop
+- Menu: Click Start (or the whiteboard), or press `Enter`
+- Move: `WASD` or Arrow keys
+- Shoot: `Space`
+- Quit immediately: `Esc`
 
-### Scoring (easy rules)
+End screen:
+- Replay: play again
+- Home: exit the mini game
+- If `invitation.png` is shown (win screen), click or press `Enter` to continue
 
-- You play for **60 seconds**.
-- You win if your marks are **30 or more** ($\text{Marks} \ge 30$).
-- Laser hits:
-  - When your laser hits an **unhit** wood for the first time: **+1 mark** and it transforms.
-- Touching wood with Max:
-  - Touch a **hit / transformed** wood: **+1 mark** (collect it).
-  - Touch an **unhit** `wood.png`: **-1 mark**.
-- Missed wood:
-  - If an **unhit** `wood.png` flies off the **left edge**: **-1 mark**.
+### Win + scoring (simple rules)
+
+- Time limit: **60 seconds**
+- Win condition: **Marks ≥ 30**
+- Shoot an unhit wood (first hit): **+1** and it transforms
+- Touch transformed wood: **+1** (collect)
+- Touch unhit `wood.png`: **-1**
+- Unhit `wood.png` leaving the left edge: **-1**
 
 ## Contribute
 
