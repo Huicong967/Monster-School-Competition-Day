@@ -608,13 +608,13 @@ def show_map() -> None:
                 print("Failed to run Tiger Game:", e)
 
         if launch_tetris_game:
-            tetris_path = os.path.join(os.path.dirname(__file__), "tetris_game", "tetris_game.py")
+            tetris_path = os.path.join(os.path.dirname(__file__), "sir_doggegg_nap_break", "tetris_game.py")
             if not os.path.exists(tetris_path):
                 print("Tetris game script not found at", tetris_path)
                 continue
 
             try:
-                spec = importlib.util.spec_from_file_location("tetris_game", tetris_path)
+                spec = importlib.util.spec_from_file_location("sir_doggegg_nap_break", tetris_path)
                 if spec is None or spec.loader is None:
                     raise RuntimeError("Unable to load Tetris module")
                 mod = importlib.util.module_from_spec(spec)

@@ -1,11 +1,12 @@
-# Tetris Game
 
-A standalone Pygame Tetris implementation for this project.
+# Sir Doggegg's Nap Break
+
+A standalone Pygame game for this project.
 
 ## Run
 
 ```bash
-./.venv/bin/python "tetris_game/tetris_game.py"
+./.venv/bin/python "sir_doggegg_nap_break/tetris_game.py"
 ```
 
 ## Controls

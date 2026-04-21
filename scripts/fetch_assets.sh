@@ -6,7 +6,7 @@ set -euo pipefail
 # then place them into the correct project directories.
 
 # Ensure asset dirs exist
-mkdir -p "menu&map/intro_video" "tetris_game"
+mkdir -p "menu&map/intro_video" "sir_doggegg_nap_break"
 
 DEFAULT_DRIVE_FOLDER_URL="https://drive.google.com/drive/folders/140KtZPATTSU3Ngl9Kr-ivbabi4sqTBL8?usp=sharing"
 DRIVE_FOLDER_URL="${1:-$DEFAULT_DRIVE_FOLDER_URL}"
@@ -67,10 +67,10 @@ copy_asset "intro04.mp4" "menu&map/intro_video/intro04.mp4"
 copy_asset "monstercollegeintro.mp4" "menu&map/monstercollegeintro.mp4"
 
 # Tetris assets
-copy_asset "takeabreak.mp4" "tetris_game/takeabreak.mp4"
-copy_asset "button_clicking_soun_#3-1776674335806.mp3" "tetris_game/button_clicking_soun_#3-1776674335806.mp3"
-copy_asset "tetris_line_clear_so_#4-1776674161372.mp3" "tetris_game/tetris_line_clear_so_#4-1776674161372.mp3"
-copy_asset "tetris_puzzle_drop_s_#1-1776674215861.mp3" "tetris_game/tetris_puzzle_drop_s_#1-1776674215861.mp3"
+copy_asset "takeabreak.mp4" "sir_doggegg_nap_break/takeabreak.mp4"
+copy_asset "button_clicking_soun_#3-1776674335806.mp3" "sir_doggegg_nap_break/button_clicking_soun_#3-1776674335806.mp3"
+copy_asset "tetris_line_clear_so_#4-1776674161372.mp3" "sir_doggegg_nap_break/tetris_line_clear_so_#4-1776674161372.mp3"
+copy_asset "tetris_puzzle_drop_s_#1-1776674215861.mp3" "sir_doggegg_nap_break/tetris_puzzle_drop_s_#1-1776674215861.mp3"
 
 rm -rf "$TMP_DIR"
 
