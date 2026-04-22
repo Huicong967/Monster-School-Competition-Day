@@ -6,8 +6,21 @@ import importlib.util
 import numpy as np
 import tempfile
 import time
+import importlib
 from moviepy.video.io.VideoFileClip import VideoFileClip
-from moviepy.editor import concatenate_videoclips
+
+
+def _resolve_concatenate_videoclips():
+    """Support both MoviePy 2.x (top-level) and 1.x (moviepy.editor)."""
+    moviepy_pkg = importlib.import_module("moviepy")
+    concat = getattr(moviepy_pkg, "concatenate_videoclips", None)
+    if concat is not None:
+        return concat
+    editor_pkg = importlib.import_module("moviepy.editor")
+    return getattr(editor_pkg, "concatenate_videoclips")
+
+
+concatenate_videoclips = _resolve_concatenate_videoclips()
 
 
 # Initialize Pygame
@@ -328,12 +341,47 @@ def play_video() -> None:
 
     TAB skips the entire sequence.
     """
-    intro_paths = [os.path.join(INTRO_VIDEO_DIR, name) for name in INTRO_VIDEO_NAMES]
+    # Build a prioritized list of possible intro files. Support both
+    # the older INTRO_VIDEO_DIR/INTRO_VIDEO_NAMES pattern and the
+    # newer INTRO_VIDEO_CANDIDATES list.
+    intro_paths = []
+    # explicit candidates (if present)
+    if 'INTRO_VIDEO_CANDIDATES' in globals():
+        intro_paths.extend([p for p in INTRO_VIDEO_CANDIDATES if p])
+
+    # standard intro01-04 under ASSET_DIR/intro_video
+    intro_video_dir = os.path.join(ASSET_DIR, "intro_video")
+    standard_names = ["intro01.mp4", "intro02.mp4", "intro03.mp4", "intro04.mp4"]
+    intro_paths.extend([os.path.join(intro_video_dir, n) for n in standard_names])
+
+    # dedupe while preserving order
+    seen = set()
+    intro_paths = [p for p in intro_paths if p not in seen and not seen.add(p)]
+
     existing_paths = [p for p in intro_paths if os.path.exists(p)]
 
     if not existing_paths:
-        print(f"No intro videos found in: {INTRO_VIDEO_DIR}")
-        return
+        print(f"No intro videos found in candidates or: {intro_video_dir}")
+        # Try to auto-run the helper script to fetch assets (if present).
+        fetch_script = os.path.join(os.path.dirname(__file__), "scripts", "fetch_assets.sh")
+        if os.path.exists(fetch_script):
+            try:
+                print("Attempting to download intro assets using scripts/fetch_assets.sh...")
+                sys.stdout.flush()
+                proc = subprocess.run(["bash", fetch_script], cwd=os.path.dirname(__file__), capture_output=True, text=True, timeout=600)
+                print(proc.stdout)
+                if proc.returncode != 0:
+                    print("Asset fetch script failed:", proc.stderr)
+                existing_paths = [p for p in intro_paths if os.path.exists(p)]
+            except Exception as e:
+                print("Auto-download attempt failed:", e)
+
+        if not existing_paths:
+            print("No intro videos available after fetch attempt. See README.md for manual instructions.")
+            return
+
+    # Use the first available intro video file for in-window playback.
+    video_path = existing_paths[0]
 
     try:
         print(f"Attempting in-window playback: {video_path}")

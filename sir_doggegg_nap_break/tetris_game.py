@@ -173,10 +173,31 @@ class Tetris:
         except Exception as e:
             print(f"Warning: Could not load background image: {e}")
             self.bg_image = None
-        if self.audio_enabled and os.path.exists(MUSIC_PATH):
+        if self.audio_enabled:
             try:
-                self.game_music = pygame.mixer.Sound(MUSIC_PATH)
-                self.game_music_channel = pygame.mixer.Channel(1)
+                # Prefer explicit MUSIC_PATH, but fall back to any other mp3 in the folder
+                if os.path.exists(MUSIC_PATH):
+                    try:
+                        self.game_music = pygame.mixer.Sound(MUSIC_PATH)
+                        print(f"Debug: loaded game music from {MUSIC_PATH}")
+                    except Exception as e:
+                        print(f"Debug: failed to load MUSIC_PATH {MUSIC_PATH}: {e}")
+                else:
+                    # scan for mp3 files in this directory as a fallback (excluding known SFX)
+                    dirpath = os.path.dirname(__file__)
+                    candidates = [f for f in os.listdir(dirpath) if f.lower().endswith('.mp3')]
+                    # exclude sfx filenames
+                    exclude = {os.path.basename(BUTTON_CLICK_SFX_PATH), os.path.basename(LINE_CLEAR_SFX_PATH), os.path.basename(PUZZLE_DROP_SFX_PATH)}
+                    candidates = [c for c in candidates if c not in exclude]
+                    if candidates:
+                        pick = os.path.join(dirpath, candidates[0])
+                        try:
+                            self.game_music = pygame.mixer.Sound(pick)
+                            print(f"Debug: loaded fallback game music from {pick}")
+                        except Exception as e:
+                            print(f"Warning: fallback music found but failed to load: {e}")
+                # defer channel allocation until play time; use find_channel() to avoid conflicts
+                self.game_music_channel = None
             except Exception as e:
                 print(f"Warning: Could not load game music: {e}")
         if self.audio_enabled:
@@ -386,11 +407,54 @@ class Tetris:
         return max(self.mode_min_drop_ms, int(value))
 
     def start_game_music(self):
-        if self.game_music_channel is None or self.game_music is None:
+        if self.game_music is None:
+            print("Debug: start_game_music aborted: no game_music")
             return
+        # Attempt to find a free mixer channel to avoid colliding with SFX
+        if self.game_music_channel is None:
+            try:
+                ch = pygame.mixer.find_channel()
+                if ch is None:
+                    # ensure at least 8 channels are available then try again
+                    try:
+                        pygame.mixer.set_num_channels(max(8, pygame.mixer.get_num_channels()))
+                        ch = pygame.mixer.find_channel()
+                    except Exception:
+                        ch = None
+                if ch is not None:
+                    self.game_music_channel = ch
+                else:
+                    # fallback to a fixed channel index if no free channel found
+                    try:
+                        self.game_music_channel = pygame.mixer.Channel(1)
+                    except Exception:
+                        self.game_music_channel = None
+            except Exception as e:
+                print(f"Debug: error finding channel: {e}")
+
+        if self.game_music_channel is None:
+            print("Debug: no available channel to play game music")
+            return
+
+        try:
+            print(f"Debug: start_game_music called. channel_busy={self.game_music_channel.get_busy()}")
+        except Exception:
+            pass
+
         if not self.game_music_channel.get_busy():
-            self.game_music_channel.set_volume(0.9)
-            self.game_music_channel.play(self.game_music, loops=-1)
+            # Reduce baseline music volume by ~15%
+            base_vol = 0.9
+            vol = max(0.0, base_vol * 0.85)
+            print(f"Debug: setting game music volume to {vol}")
+            try:
+                self.game_music_channel.set_volume(vol)
+            except Exception:
+                pass
+            try:
+                self.game_music_channel.play(self.game_music, loops=-1)
+                print("Debug: started game music on channel")
+            except Exception as e:
+                print(f"Debug: failed to start game music: {e}")
 
     def request_return_to_map(self):
         self.return_to_map = True
