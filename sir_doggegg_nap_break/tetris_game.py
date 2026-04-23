@@ -237,6 +237,8 @@ class Tetris:
         self.mode_per_level_dec = PER_LEVEL_DEC
         self.mode_lock_delay_ms = LOCK_DELAY_MS
         self.mode_min_drop_ms = MIN_DROP_MS
+        # Default win threshold (Easy mode). This is updated when a mode
+        # is selected via `apply_mode_settings()` during the start sequence.
         self.mode_win_lines = 20
         self.has_won = False
         self.return_to_map = False
@@ -261,6 +263,10 @@ class Tetris:
         while self.next_piece.kind == self.current.kind:
             self.next_piece = self.random_piece()
         if self.collides(self.current, 0, 0, self.current.rotation):
+            # If a spawn immediately collides the board, it's a top-out game over.
+            # If the player has already reached the win threshold (when the
+            # mode defines one) consider this a win for the end-overlay.
+            self.has_won = (self.mode_win_lines is not None) and (self.lines >= self.mode_win_lines)
             self.game_over = True
         # after spawning a new piece, allow holding again
         self.can_hold = True
@@ -307,11 +313,12 @@ class Tetris:
             self.score += [0, 100, 300, 500, 800][cleared] * self.level
             self.level = 1 + self.lines // 2
             self.drop_ms = self.compute_drop_ms()
-            # Enter end-state immediately on win so B/T/R keys work on the overlay.
-            if self.lines >= self.mode_win_lines:
+            # If the player reached the win threshold, mark `has_won` but do
+            # not immediately end the play session — allow continued play
+            # until a real top-out occurs. The final overlay will show the
+            # win if `has_won` is True when the game ultimately ends.
+            if self.mode_win_lines is not None and self.lines >= self.mode_win_lines:
                 self.has_won = True
-                self.game_over = True
-                return
         self.spawn_piece()
 
     def hold_current(self):
@@ -340,6 +347,9 @@ class Tetris:
             self.current.rotation = 0
             # if swapping produces immediate collision, game over
             if self.collides(self.current, 0, 0, self.current.rotation):
+                # Treat a hold-swap top-out similarly: if lines already meet
+                # the win threshold, reflect a win on the overlay.
+                self.has_won = (self.mode_win_lines is not None) and (self.lines >= self.mode_win_lines)
                 self.game_over = True
             self.can_hold = False
 
@@ -880,7 +890,9 @@ class Tetris:
         stat_font = pygame.font.Font(FONT_PATH, max(24, int(WINDOW_H * 0.045)))
         hint_font = pygame.font.Font(FONT_PATH, max(18, int(WINDOW_H * 0.03)))
 
-        won_by_lines = self.lines >= self.mode_win_lines
+        # Consider a win if either `has_won` was set earlier, or the lines
+        # currently meet the mode threshold.
+        won_by_lines = bool(self.has_won) or (self.mode_win_lines is not None and self.lines >= self.mode_win_lines)
         headline = "You Win!" if won_by_lines else "Game Over"
         headline_color = ACCENT if won_by_lines else GAME_OVER
         game_over_text = title_font.render(headline, True, headline_color)
