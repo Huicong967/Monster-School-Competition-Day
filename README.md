@@ -22,7 +22,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-2. Download large media assets (videos and audio):
+If large media assets (videos and audio) missing can download using this:
 
 ```bash
 bash scripts/fetch_assets.sh
